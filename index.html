@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="UTF-8">
+  <title>Train Scheduler</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container">
+    <div class="jumbotron">
+      <h1 class="text-center"><strong>Anytime is Train Time</strong></h1>
+      <h2 class="text-center">Choo Choo. Chee Chee.</h2>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Current Train Schedule</h3>
+      </div>
+      <div class="panel-body">
+        <table class="table">
+            <tr>
+               <th>Train Name</th>
+               <th>Destination</th>
+               <th>Frequency(min)</th>
+               <th>Next Arrival</th>
+               <th>Minutes Away</th>
+            </tr>
+         </table>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+       <h3 class="panel-title">Add Train</h3>
+      </div>
+      <div class="panel-body">
+        <form>
+        <div class="form-group">
+          <label for="exampleName">Train Name</label>
+          <input type="Name" id="name" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="exampleDest">Destination</label>
+          <input type="Destination" id="dest" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="exampleDate">First Train Time (HH:mm - military time)</label>
+          <input id="date" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="exampleRate">Frequency (min)</label>
+          <input type="Rate" id="rate" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+        </form>
+      </div>
+    </div> 
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/3.7.2/firebase.js"></script>
+  <script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
+  <script>
+  var config = {
+    apiKey: "AIzaSyD3Uudn_Wv_lgdNn2hD3QRgwtERz1hI8Xc",
+    authDomain: "trainscheduler-1b310.firebaseapp.com",
+    databaseURL: "https://trainscheduler-1b310.firebaseio.com",
+    storageBucket: "trainscheduler-1b310.appspot.com",
+    messagingSenderId: "485879359607"
+  };
+  firebase.initializeApp(config);
+  var database = firebase.database();
+  var tableRow = $("<tr></tr>"); 
+  $(document).ready(function() { 
+    var valueRef = firebase.database().ref();
+    valueRef.on('value', function(snapshot) {
+      var myJson = snapshot.val();
+      console.log(myJson);
+      var trainList = Object.keys(myJson);
+      console.log(trainList);
+      var keyNames = [];
+      for (i=0; i < trainList.length; i++) {
+      var keys = trainList[i].slice(1);
+      keyNames.push(keys);
+      }
+      for (i=0; i < keyNames.length; i++) {
+        $(".table").append(tableRow);
+        // tableRow.append("<td>"+keyNames[i].name+"</td>");
+        // tableRow.append("<td>"+oldTrains[i].dest+"</td>");
+        // tableRow.append("<td>"+oldTrains[i].rate+"</td>");
+        // tableRow.append("<td>"+oldTrains[i].nextArrival+"</td>");
+        // tableRow.append("<td>"+oldTrains[i].minAway+"</td>");
+      }
+      console.log(keyNames);
+    }); 
+  });
+  $(".btn").on("click", function(event) {
+    event.preventDefault();
+    var name = $("#name").val().trim();
+    var dest = $("#dest").val().trim();
+    var date = $("#date").val().trim();
+    var rate = $("#rate").val().trim();
+    var frequency = parseInt(rate);
+    var today = moment();
+    var momentDate = moment(date, "hh:mm");
+    var timeDiff = today.diff(momentDate, "minutes");
+    var timeRem = timeDiff % frequency;
+    var minAway = rate - timeRem;
+    var addMin = moment().add(minAway, "minutes");
+    var nextArrival = moment(addMin).format("h:mm a");
+    var tableRow = $("<tr></tr>");
+    $(".table").append(tableRow);
+    tableRow.append("<td>"+name+"</td>");
+    tableRow.append("<td>"+dest+"</td>");
+    tableRow.append("<td>"+rate+"</td>");
+    tableRow.append("<td>"+nextArrival+"</td>");
+    tableRow.append("<td>"+minAway+"</td>")
+    database.ref().push({
+      name:name,
+      date:date,
+      destination:dest,
+      frequency:rate
+    });
+  });
+  </script>
+</body>
+</html>
