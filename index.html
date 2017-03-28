@@ -52,10 +52,12 @@
         <button type="submit" class="btn btn-default">Submit</button>
         </form>
       </div>
-    </div> 
+    </div>
+  </div> 
   <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/3.7.2/firebase.js"></script>
+  <script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
   <script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
   <script>
   var config = {
@@ -66,30 +68,34 @@
     messagingSenderId: "485879359607"
   };
   firebase.initializeApp(config);
-  var database = firebase.database();
-  var tableRow = $("<tr></tr>"); 
+  var database = firebase.database(); 
   $(document).ready(function() { 
-    var valueRef = firebase.database().ref();
-    valueRef.on('value', function(snapshot) {
-      var myJson = snapshot.val();
-      console.log(myJson);
-      var trainList = Object.keys(myJson);
-      console.log(trainList);
-      var keyNames = [];
-      for (i=0; i < trainList.length; i++) {
-      var keys = trainList[i].slice(1);
-      keyNames.push(keys);
-      }
-      for (i=0; i < keyNames.length; i++) {
+    var dbRef = new Firebase ('https://trainscheduler-1b310.firebaseio.com/');
+    dbRef.on("value", function(snapshot) {
+      $(".trow").remove();
+      snapshot.forEach(function (child) { 
+        var tableRow = $("<tr class='trow'></tr>");
+        var key = child.key();
+        var childData = child.val();
+        var frequency = parseInt(childData.frequency);
+        var today = moment();
+        var momentDate = moment(childData.time, "hh:mm");
+        var timeDiff = today.diff(momentDate, "minutes");
+        var timeRem = timeDiff % frequency;
+        var minAway = frequency - timeRem;
+        var addMin = moment().add(minAway, "minutes");
+        var nextArrival = moment(addMin).format("h:mm a");
+        // console.log(key);
+        console.log(childData);
+        // $(".trow").empty();
         $(".table").append(tableRow);
-        // tableRow.append("<td>"+keyNames[i].name+"</td>");
-        // tableRow.append("<td>"+oldTrains[i].dest+"</td>");
-        // tableRow.append("<td>"+oldTrains[i].rate+"</td>");
-        // tableRow.append("<td>"+oldTrains[i].nextArrival+"</td>");
-        // tableRow.append("<td>"+oldTrains[i].minAway+"</td>");
-      }
-      console.log(keyNames);
-    }); 
+        tableRow.append("<td>"+childData.aname+"</td>");
+        tableRow.append("<td>"+childData.destination+"</td>");
+        tableRow.append("<td>"+childData.frequency+"</td>");
+        tableRow.append("<td>"+nextArrival+"</td>");
+        tableRow.append("<td>"+minAway+"</td>");
+      });
+    });
   });
   $(".btn").on("click", function(event) {
     event.preventDefault();
@@ -105,16 +111,16 @@
     var minAway = rate - timeRem;
     var addMin = moment().add(minAway, "minutes");
     var nextArrival = moment(addMin).format("h:mm a");
-    var tableRow = $("<tr></tr>");
+    var tableRow = $("<tr class ='trow'></tr>");
     $(".table").append(tableRow);
     tableRow.append("<td>"+name+"</td>");
     tableRow.append("<td>"+dest+"</td>");
     tableRow.append("<td>"+rate+"</td>");
     tableRow.append("<td>"+nextArrival+"</td>");
-    tableRow.append("<td>"+minAway+"</td>")
+    tableRow.append("<td>"+minAway+"</td>");
     database.ref().push({
-      name:name,
-      date:date,
+      aname:name,
+      time:date,
       destination:dest,
       frequency:rate
     });
