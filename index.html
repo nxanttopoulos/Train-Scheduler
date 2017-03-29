@@ -79,7 +79,7 @@
         var childData = child.val();
         var frequency = parseInt(childData.frequency);
         var today = moment();
-        var momentDate = moment(childData.time, "hh:mm");
+        var momentDate = moment(childData.time, "HH:mm");
         var timeDiff = today.diff(momentDate, "minutes");
         var timeRem = timeDiff % frequency;
         var minAway = frequency - timeRem;
@@ -105,7 +105,7 @@
     var rate = $("#rate").val().trim();
     var frequency = parseInt(rate);
     var today = moment();
-    var momentDate = moment(date, "hh:mm");
+    var momentDate = moment(date, "H:mm");
     var timeDiff = today.diff(momentDate, "minutes");
     var timeRem = timeDiff % frequency;
     var minAway = rate - timeRem;
